@@ -8,25 +8,43 @@ def dfs(initialState : State):
     nodesExpanded = 0
     while frontier:
         state = frontier.pop()
+        frontierset.remove(state)
         maxDepth = max(maxDepth, state.depth)
         visited.add(state)
         if state.isGoal():
-            nodesExpanded = len(visited)
-            return state,nodesExpanded,maxDepth
+            result = {
+                'goal': state,
+                'cost': state.depth,
+                'nodesExpanded': len(visited),
+                'searchDepth': maxDepth
+            }
+            return result
         for child in state.getChildren():
             if child not in visited and child not in frontierset:
                 frontier.append(child)
                 frontierset.add(child)
-    return None
+    return {
+                'goal': None,
+                'cost': None,
+                'nodesExpanded':None,
+                'searchDepth': None
+            }
 
 
 if __name__ == "__main__":
-    state = State([1, 0, 2, 3, 4, 5, 6, 7, 8], 0, 1)
-    goal, nodesExpanded, maxDepth = dfs (state)
+    # state = State([1, 0, 2, 3, 4, 5, 6, 7, 8], 0, 1)
+    # goal, nodesExpanded, maxDepth = dfs (state)
+    # # print all data
+    # print(goal)
+    # print(nodesExpanded)
+    # print(maxDepth)
+    state = State([1, 0, 2, 7, 5, 4, 8, 6, 3], 0, 1, None)
+    result = dfs (state)
     # print all data
-    print(goal)
-    print(nodesExpanded)
-    print(maxDepth)
+    print(result['goal'])
+    print(result['nodesExpanded'])
+    print(result['searchDepth'])
+    
     
    
     
