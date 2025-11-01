@@ -5,7 +5,6 @@ def iddfs(initialState : State,maxDepth:int = 31):
     nodesExpanded = 0
     while depth <= maxDepth:
         path = set([initialState])
-        print(depth)
         goal = dis(initialState, depth,path)
         if goal:
             result =  {
