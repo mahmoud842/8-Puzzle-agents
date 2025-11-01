@@ -6,7 +6,7 @@ class State:
         self.puzzle = bytes(puzzle)
         self.depth = depth
         self.zeroindx = zeroindx
-        self.parent = None
+        self.parent = parent
         # self.f = 0
         # self.h = 0
         # self.g = 0
@@ -41,13 +41,13 @@ class State:
         otherrow = other.zeroindx // 3
         othercol = other.zeroindx % 3
         if otherrow == row+1:
-            return "up"
+            return "Down"
         elif otherrow == row-1:
-            return "down"
+            return "Up"
         elif othercol == col+1:
-            return "right"
+            return "Right"
         elif othercol == col-1:
-            return "left"
+            return "Left"
         else:
             return None
 
@@ -55,8 +55,8 @@ class State:
         self.children = []
         row = self.zeroindx // 3
         col = self.zeroindx % 3
-        dx = [1, -1, 0, -1]
-        dy = [0, 0, 1, -1]
+        dx = [0, 0, -1, 1]
+        dy = [-1, 1, 0, 0]
         for i in range(4):
             newrow = row + dy[i]
             newcol = col + dx[i]
