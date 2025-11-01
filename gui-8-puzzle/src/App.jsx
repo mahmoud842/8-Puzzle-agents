@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Play, Shuffle, RotateCcw, ChevronRight, Clock, Layers, Route, TrendingDown, Pause, ChevronLeft, SkipForward, SkipBack, RotateCcwSquare, AlertCircle } from 'lucide-react';
+import { Play, Shuffle, RotateCcw, ChevronRight, Clock, Layers, Route, TrendingDown, Pause, ChevronLeft, SkipForward, SkipBack, RotateCcwSquare, AlertCircle, TrendingUp } from 'lucide-react';
 
 const PuzzleSolverUI = () => {
   const [algorithm, setAlgorithm] = useState('BFS');
@@ -273,69 +273,6 @@ const PuzzleSolverUI = () => {
               <Play size={24} />
               {isRunning ? 'Running...' : 'Solve Puzzle'}
             </button>
-
-            {solutionPath.length > 0 && (
-              <div className="space-y-3">
-                <button
-                  onClick={resetToFirstStep}
-                  disabled={animating || currentStep === 0}
-                  className="w-full bg-gradient-to-r from-indigo-500 to-blue-500 hover:from-indigo-600 hover:to-blue-600 text-white font-bold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg"
-                >
-                  <RotateCcwSquare size={20} />
-                  Reset to Step 1
-                </button>
-                
-                <div className="flex gap-2">
-                  <button
-                    onClick={stepBackward}
-                    disabled={animating || currentStep === 0}
-                    className="flex-1 bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white font-bold py-3 px-4 rounded-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg"
-                  >
-                    <SkipBack size={20} />
-                    Back
-                  </button>
-                  
-                  <button
-                    onClick={stepForward}
-                    disabled={animating || currentStep === solutionPath.length - 1}
-                    className="flex-1 bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white font-bold py-3 px-4 rounded-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg"
-                  >
-                    Forward
-                    <SkipForward size={20} />
-                  </button>
-                </div>
-                
-                {!animating && !isPaused && (
-                  <button
-                    onClick={animateSolution}
-                    className="w-full bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white font-bold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2 shadow-lg"
-                  >
-                    <Play size={20} />
-                    Play Animation
-                  </button>
-                )}
-                
-                {animating && (
-                  <button
-                    onClick={pauseAnimation}
-                    className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white font-bold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2 shadow-lg"
-                  >
-                    <Pause size={20} />
-                    Pause Animation
-                  </button>
-                )}
-                
-                {isPaused && (
-                  <button
-                    onClick={resumeAnimation}
-                    className="w-full bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-bold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2 shadow-lg"
-                  >
-                    <Play size={20} />
-                    Resume Animation
-                  </button>
-                )}
-              </div>
-            )}
           </div>
 
           {/* Middle Panel - Puzzle Board */}
@@ -362,11 +299,72 @@ const PuzzleSolverUI = () => {
               </div>
 
               {solutionPath.length > 0 && (
-                <div className="text-center text-white">
-                  <p className="text-lg">
-                    Step <span className="font-bold text-cyan-400">{currentStep + 1}</span> of{' '}
-                    <span className="font-bold text-pink-400">{solutionPath.length}</span>
-                  </p>
+                <div className="space-y-4">
+                  <div className="text-center text-white">
+                    <p className="text-lg">
+                      Step <span className="font-bold text-cyan-400">{currentStep}</span> of{' '}
+                      <span className="font-bold text-pink-400">{solutionPath.length - 1}</span>
+                    </p>
+                  </div>
+
+                  <button
+                    onClick={resetToFirstStep}
+                    disabled={animating || currentStep === 0}
+                    className="w-full bg-gradient-to-r from-indigo-500 to-blue-500 hover:from-indigo-600 hover:to-blue-600 text-white font-bold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg"
+                  >
+                    <RotateCcwSquare size={20} />
+                    Reset to Step 1
+                  </button>
+                  
+                  <div className="flex gap-2">
+                    <button
+                      onClick={stepBackward}
+                      disabled={animating || currentStep === 0}
+                      className="flex-1 bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white font-bold py-3 px-4 rounded-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg"
+                    >
+                      <SkipBack size={20} />
+                      Back
+                    </button>
+                    
+                    <button
+                      onClick={stepForward}
+                      disabled={animating || currentStep === solutionPath.length - 1}
+                      className="flex-1 bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white font-bold py-3 px-4 rounded-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg"
+                    >
+                      Forward
+                      <SkipForward size={20} />
+                    </button>
+                  </div>
+                  
+                  {!animating && !isPaused && (
+                    <button
+                      onClick={animateSolution}
+                      className="w-full bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white font-bold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2 shadow-lg"
+                    >
+                      <Play size={20} />
+                      Play Animation
+                    </button>
+                  )}
+                  
+                  {animating && (
+                    <button
+                      onClick={pauseAnimation}
+                      className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white font-bold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2 shadow-lg"
+                    >
+                      <Pause size={20} />
+                      Pause Animation
+                    </button>
+                  )}
+                  
+                  {isPaused && (
+                    <button
+                      onClick={resumeAnimation}
+                      className="w-full bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-bold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2 shadow-lg"
+                    >
+                      <Play size={20} />
+                      Resume Animation
+                    </button>
+                  )}
                 </div>
               )}
             </div>
@@ -396,12 +394,6 @@ const PuzzleSolverUI = () => {
                     <p className="text-red-200 text-lg leading-relaxed">
                       {results.error || 'This puzzle configuration cannot be solved. The puzzle may be in an unsolvable state.'}
                     </p>
-                    {/* <div className="bg-red-500/20 rounded-xl p-4 border border-red-400/30 w-full">
-                      <p className="text-red-100 text-sm font-semibold mb-2">💡 Tip:</p>
-                      <p className="text-red-200 text-sm">
-                        Try generating a random puzzle or resetting to the goal state, then make valid moves to create a solvable configuration.
-                      </p>
-                    </div> */}
                   </div>
                 </div>
               ) : (
@@ -450,13 +442,11 @@ const PuzzleSolverUI = () => {
                   </div>
 
                   <div className="bg-gradient-to-r from-yellow-500/20 to-orange-500/20 rounded-xl p-4 border border-yellow-400/30">
-                    <div className="text-yellow-300 mb-2 font-semibold">Search Metrics</div>
-                    <div className="space-y-2 text-white">
-                      <div className="flex justify-between">
-                        <span>Search Depth:</span>
-                        <span className="font-bold">{results.searchDepth}</span>
-                      </div>
+                    <div className="flex items-center gap-2 text-yellow-300 mb-1">
+                      <TrendingUp size={20} />
+                      <span className="font-semibold">Search Depth</span>
                     </div>
+                    <p className="text-3xl font-bold text-white">{results.searchDepth}</p>
                   </div>
 
                   <div className="bg-gradient-to-r from-pink-500/20 to-rose-500/20 rounded-xl p-4 border border-pink-400/30">

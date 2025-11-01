@@ -1,4 +1,4 @@
-import numpy as np
+import math
 
 class State:
     def __init__(self, puzzle: list, depth: int = 0, zeroindx: int = 0, parent=None):
@@ -6,9 +6,9 @@ class State:
         self.depth = depth
         self.zeroindx = zeroindx
         self.parent = parent
-        # self.f = 0
-        # self.h = 0
-        # self.g = 0
+        self.f = 0
+        self.h = 0
+        self.g = 0
 
     def __eq__(self, other):
         return self.puzzle == other.puzzle
@@ -25,14 +25,9 @@ class State:
             result.append("+---+---+---+")
         result.append(f"Depth: {self.depth}")
         return '\n'.join(result)
-    # def calculateF(self):
-    #     pass
-    # def calculateG(self):
-    #     pass
-    # def calculateH(self):
-    #     pass
-    # def __lt__(self, other):# for pri queue comparison
-    #     return self.f < other.f
+    
+    def __lt__(self, other):
+        return self.f < other.f
 
     def getrelation(self, other):
         row = self.zeroindx // 3
@@ -72,6 +67,45 @@ class State:
     
     def getState(self):
         return list(self.puzzle)
+    
+    # def calculateH(self, goal, method):
+    #     current = self.getState()
+    #     target = goal.getState()
+    #     total = 0
+    #     for num in range(1, 9):
+    #         ci = current.index(num)
+    #         gi = target.index(num)
+    #         cx, cy = ci % 3, ci // 3
+    #         gx, gy = gi % 3, gi // 3
+    #         if method == "Manhattan":
+    #             total += abs(cx - gx) + abs(cy - gy)
+    #         elif method == "Euclidean":
+    #             total += math.sqrt((cx - gx) ** 2 + (cy - gy) ** 2)
+    #     self.h = total
+    #     return self.h
+    
+    def calculateH(self, method):
+        current = self.getState()
+        total = 0
+        for num in range(1, 9):
+            ci = num
+            gi = current[num]
+            cx, cy = ci % 3, ci // 3
+            gx, gy = gi % 3, gi // 3
+            if method == "Manhattan":
+                total += abs(cx - gx) + abs(cy - gy)
+            elif method == "Euclidean":
+                total += math.sqrt((cx - gx) ** 2 + (cy - gy) ** 2)
+        self.h = total
+        return self.h
+
+    def calculateG(self):
+        self.g = self.depth
+        return self.g
+
+    def calculateF(self):
+        self.f = self.g + self.h
+        return self.f
 
 
 if __name__ == "__main__":

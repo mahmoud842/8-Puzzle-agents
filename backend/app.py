@@ -6,6 +6,8 @@ import time
 from util import *
 from dfs import dfs
 from IDS import iddfs
+from bfs import bfs
+from Astar import astar
 
 app = Flask(__name__)
 CORS(app)
@@ -37,7 +39,7 @@ def solve_puzzle():
         
         # Run the selected algorithm
         if algorithm == 'BFS':
-            result = {'success': False, 'error': 'BFS not yet implemented'}
+            result = build_output(bfs(initialState))
 
         elif algorithm == 'DFS':
             result = build_output(dfs(initialState))
@@ -46,14 +48,14 @@ def solve_puzzle():
             result = build_output(iddfs(initialState))
 
         elif algorithm.startswith('A*'):
-            result = {'success': False, 'error': 'A* not yet implemented'}
+            result = build_output(astar(initialState, algorithm[3:]))
 
         else:
             return jsonify({'success': False, 'error': 'Unknown algorithm'}), 400
         
         # End timing
         endTime = time.time()
-        runningTime = round(endTime - startTime, 3)
+        runningTime = round(endTime - startTime, 6)
         result['runningTime'] = runningTime
 
         return jsonify(result)
