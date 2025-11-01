@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Play, Shuffle, RotateCcw, ChevronRight, Clock, Layers, Route, TrendingDown } from 'lucide-react';
+import { Play, Shuffle, RotateCcw, ChevronRight, Clock, Layers, Route, TrendingDown, Pause, ChevronLeft, SkipForward, SkipBack, RotateCcwSquare, AlertCircle } from 'lucide-react';
 
 const PuzzleSolverUI = () => {
   const [algorithm, setAlgorithm] = useState('BFS');
@@ -10,6 +10,10 @@ const PuzzleSolverUI = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const [solutionPath, setSolutionPath] = useState([]);
   const [animating, setAnimating] = useState(false);
+  const [selectedTile, setSelectedTile] = useState(null);
+  const [isPaused, setIsPaused] = useState(false);
+  const [animationInterval, setAnimationInterval] = useState(null);
+  const [showFullPath, setShowFullPath] = useState(false);
 
   const algorithms = [
     { id: 'BFS', name: 'BFS', color: 'from-blue-500 to-cyan-500' },
@@ -29,29 +33,29 @@ const PuzzleSolverUI = () => {
     setResults(null);
     setSolutionPath([]);
     setCurrentStep(0);
+    setSelectedTile(null);
   };
 
   const resetPuzzle = () => {
-    setPuzzleState([1, 2, 5, 3, 4, 0, 6, 7, 8]);
+    setPuzzleState([0, 1, 2, 3, 4, 5, 6, 7, 8]);
     setResults(null);
     setSolutionPath([]);
     setCurrentStep(0);
+    setSelectedTile(null);
   };
 
   const handleTileClick = (index) => {
     if (!editMode) return;
     
-    const zeroIndex = puzzleState.indexOf(0);
-    const row = Math.floor(index / 3);
-    const col = index % 3;
-    const zeroRow = Math.floor(zeroIndex / 3);
-    const zeroCol = zeroIndex % 3;
-    
-    if ((Math.abs(row - zeroRow) === 1 && col === zeroCol) || 
-        (Math.abs(col - zeroCol) === 1 && row === zeroRow)) {
+    if (selectedTile === null) {
+      // First tile selected
+      setSelectedTile(index);
+    } else {
+      // Second tile selected - swap them
       const newPuzzle = [...puzzleState];
-      [newPuzzle[index], newPuzzle[zeroIndex]] = [newPuzzle[zeroIndex], newPuzzle[index]];
+      [newPuzzle[index], newPuzzle[selectedTile]] = [newPuzzle[selectedTile], newPuzzle[index]];
       setPuzzleState(newPuzzle);
+      setSelectedTile(null);
     }
   };
 
@@ -79,8 +83,8 @@ const PuzzleSolverUI = () => {
           costOfPath: data.costOfPath,
           nodesExpanded: data.nodesExpanded,
           searchDepth: data.searchDepth,
-          maxDepth: data.maxDepth,
-          runningTime: data.runningTime
+          runningTime: data.runningTime,
+          success: true
         });
         
         setSolutionPath(data.solutionPath);
@@ -89,7 +93,10 @@ const PuzzleSolverUI = () => {
         console.log(results)
         console.log(solutionPath)
       } else {
-        alert('Error: ' + data.error);
+        setResults({
+          success: false,
+          error: data.error || 'Unable to solve this puzzle configuration'
+        });
       }
     } catch (error) {
       console.error('Error:', error);
@@ -99,59 +106,71 @@ const PuzzleSolverUI = () => {
     }
   };
 
-  // const runAlgorithm = async () => {
-  //   setIsRunning(true);
-  //   setResults(null);
-    
-  //   const startTime = performance.now();
-    
-  //   // Simulate algorithm execution - integrate with your Python backend here
-  //   await new Promise(resolve => setTimeout(resolve, 1000));
-    
-  //   const endTime = performance.now();
-  //   const runningTime = ((endTime - startTime) / 1000).toFixed(3);
-    
-  //   // Mock results - replace with actual algorithm results
-  //   const mockResults = {
-  //     pathToGoal: ['Up', 'Left', 'Down', 'Right', 'Up'],
-  //     costOfPath: 5,
-  //     nodesExpanded: 23,
-  //     searchDepth: 5,
-  //     maxDepth: 8,
-  //     runningTime: runningTime
-  //   };
-    
-  //   // Mock solution path - replace with actual path from algorithm
-  //   const mockPath = [
-  //     [1, 2, 5, 3, 4, 0, 6, 7, 8],
-  //     [1, 2, 0, 3, 4, 5, 6, 7, 8],
-  //     [1, 0, 2, 3, 4, 5, 6, 7, 8],
-  //     [0, 1, 2, 3, 4, 5, 6, 7, 8]
-  //   ];
-    
-  //   setResults(mockResults);
-  //   setSolutionPath(mockPath);
-  //   setCurrentStep(0);
-  //   setIsRunning(false);
-  // };
-
   const animateSolution = () => {
     if (solutionPath.length === 0) return;
     
     setAnimating(true);
-    let step = 0;
+    setIsPaused(false);
+    let step = currentStep;
     
     const interval = setInterval(() => {
-      if (step >= solutionPath.length) {
+      if (step >= solutionPath.length - 1) {
         clearInterval(interval);
         setAnimating(false);
+        setAnimationInterval(null);
         return;
       }
       
+      step++;
       setPuzzleState(solutionPath[step]);
       setCurrentStep(step);
-      step++;
     }, 500);
+    
+    setAnimationInterval(interval);
+  };
+
+  const pauseAnimation = () => {
+    if (animationInterval) {
+      clearInterval(animationInterval);
+      setAnimationInterval(null);
+      setIsPaused(true);
+      setAnimating(false);
+    }
+  };
+
+  const resumeAnimation = () => {
+    if (isPaused) {
+      animateSolution();
+    }
+  };
+
+  const stepForward = () => {
+    if (currentStep < solutionPath.length - 1) {
+      const newStep = currentStep + 1;
+      setCurrentStep(newStep);
+      setPuzzleState(solutionPath[newStep]);
+    }
+  };
+
+  const stepBackward = () => {
+    if (currentStep > 0) {
+      const newStep = currentStep - 1;
+      setCurrentStep(newStep);
+      setPuzzleState(solutionPath[newStep]);
+    }
+  };
+
+  const resetToFirstStep = () => {
+    if (solutionPath.length > 0) {
+      setCurrentStep(0);
+      setPuzzleState(solutionPath[0]);
+      if (animationInterval) {
+        clearInterval(animationInterval);
+        setAnimationInterval(null);
+      }
+      setAnimating(false);
+      setIsPaused(false);
+    }
   };
 
   const getTileColor = (num) => {
@@ -225,11 +244,14 @@ const PuzzleSolverUI = () => {
                   className="w-full bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white font-bold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg"
                 >
                   <RotateCcw size={20} />
-                  Reset to Default
+                  Reset to Goal State
                 </button>
                 
                 <button
-                  onClick={() => setEditMode(!editMode)}
+                  onClick={() => {
+                    setEditMode(!editMode);
+                    setSelectedTile(null);
+                  }}
                   disabled={isRunning || animating}
                   className={`w-full font-bold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg ${
                     editMode
@@ -253,14 +275,66 @@ const PuzzleSolverUI = () => {
             </button>
 
             {solutionPath.length > 0 && (
-              <button
-                onClick={animateSolution}
-                disabled={animating}
-                className="w-full bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white font-bold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg"
-              >
-                <ChevronRight size={20} />
-                {animating ? 'Animating...' : 'Animate Solution'}
-              </button>
+              <div className="space-y-3">
+                <button
+                  onClick={resetToFirstStep}
+                  disabled={animating || currentStep === 0}
+                  className="w-full bg-gradient-to-r from-indigo-500 to-blue-500 hover:from-indigo-600 hover:to-blue-600 text-white font-bold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg"
+                >
+                  <RotateCcwSquare size={20} />
+                  Reset to Step 1
+                </button>
+                
+                <div className="flex gap-2">
+                  <button
+                    onClick={stepBackward}
+                    disabled={animating || currentStep === 0}
+                    className="flex-1 bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white font-bold py-3 px-4 rounded-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg"
+                  >
+                    <SkipBack size={20} />
+                    Back
+                  </button>
+                  
+                  <button
+                    onClick={stepForward}
+                    disabled={animating || currentStep === solutionPath.length - 1}
+                    className="flex-1 bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white font-bold py-3 px-4 rounded-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg"
+                  >
+                    Forward
+                    <SkipForward size={20} />
+                  </button>
+                </div>
+                
+                {!animating && !isPaused && (
+                  <button
+                    onClick={animateSolution}
+                    className="w-full bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white font-bold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2 shadow-lg"
+                  >
+                    <Play size={20} />
+                    Play Animation
+                  </button>
+                )}
+                
+                {animating && (
+                  <button
+                    onClick={pauseAnimation}
+                    className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white font-bold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2 shadow-lg"
+                  >
+                    <Pause size={20} />
+                    Pause Animation
+                  </button>
+                )}
+                
+                {isPaused && (
+                  <button
+                    onClick={resumeAnimation}
+                    className="w-full bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-bold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2 shadow-lg"
+                  >
+                    <Play size={20} />
+                    Resume Animation
+                  </button>
+                )}
+              </div>
             )}
           </div>
 
@@ -268,7 +342,7 @@ const PuzzleSolverUI = () => {
           <div className="lg:col-span-1">
             <div className="bg-white/10 backdrop-blur-lg rounded-3xl p-8 shadow-2xl border border-white/20">
               <h2 className="text-2xl font-bold text-white mb-6 text-center">
-                {editMode ? '✏️ Click tiles to move' : 'Current State'}
+                {editMode ? '✏️ Click two tiles to swap' : 'Current State'}
               </h2>
               
               <div className="grid grid-cols-3 gap-4 mb-6">
@@ -280,7 +354,7 @@ const PuzzleSolverUI = () => {
                       num === 0
                         ? 'bg-gray-800/50 cursor-default'
                         : `${getTileColor(num)} ${editMode ? 'cursor-pointer hover:scale-110 hover:shadow-2xl' : ''}`
-                    }`}
+                    } ${selectedTile === index ? 'ring-4 ring-yellow-400 scale-110' : ''}`}
                   >
                     {num !== 0 && num}
                   </div>
@@ -310,20 +384,53 @@ const PuzzleSolverUI = () => {
                 <div className="text-center text-purple-200 py-12">
                   <p className="text-lg">Run an algorithm to see results</p>
                 </div>
+              ) : results.success === false ? (
+                <div className="bg-gradient-to-br from-red-500/30 to-rose-600/30 rounded-2xl p-8 border-2 border-red-400/50 shadow-2xl backdrop-blur-sm">
+                  <div className="flex flex-col items-center text-center space-y-4">
+                    <div className="bg-red-500/20 rounded-full p-4 border-2 border-red-400/50">
+                      <AlertCircle size={48} className="text-red-300" />
+                    </div>
+                    <h3 className="text-2xl font-bold text-red-100">
+                      Puzzle Cannot Be Solved
+                    </h3>
+                    <p className="text-red-200 text-lg leading-relaxed">
+                      {results.error || 'This puzzle configuration cannot be solved. The puzzle may be in an unsolvable state.'}
+                    </p>
+                    {/* <div className="bg-red-500/20 rounded-xl p-4 border border-red-400/30 w-full">
+                      <p className="text-red-100 text-sm font-semibold mb-2">💡 Tip:</p>
+                      <p className="text-red-200 text-sm">
+                        Try generating a random puzzle or resetting to the goal state, then make valid moves to create a solvable configuration.
+                      </p>
+                    </div> */}
+                  </div>
+                </div>
               ) : (
                 <div className="space-y-4">
                   <div className="bg-gradient-to-r from-blue-500/20 to-cyan-500/20 rounded-xl p-4 border border-blue-400/30">
-                    <div className="flex items-center gap-2 text-cyan-300 mb-2">
-                      <Route size={20} />
-                      <span className="font-semibold">Path to Goal</span>
+                    <div className="flex items-center justify-between gap-2 text-cyan-300 mb-2">
+                      <div className="flex items-center gap-2">
+                        <Route size={20} />
+                        <span className="font-semibold">Path to Goal</span>
+                      </div>
+                      <button
+                        onClick={() => setShowFullPath(!showFullPath)}
+                        className="text-xs bg-white/20 hover:bg-white/30 px-2 py-1 rounded transition-all"
+                      >
+                        {showFullPath ? 'Show Less' : 'Show All'}
+                      </button>
                     </div>
-                    <div className="flex flex-wrap gap-2">
+                    <div className={`flex flex-wrap gap-2 ${!showFullPath ? 'max-h-20 overflow-hidden' : ''}`}>
                       {results.pathToGoal.map((move, idx) => (
                         <span key={idx} className="bg-white/20 text-white px-3 py-1 rounded-lg text-sm font-semibold">
                           {move}
                         </span>
                       ))}
                     </div>
+                    {!showFullPath && results.pathToGoal.length > 6 && (
+                      <div className="text-center text-cyan-300 text-sm mt-2">
+                        ... and {results.pathToGoal.length - 6} more moves
+                      </div>
+                    )}
                   </div>
 
                   <div className="bg-gradient-to-r from-green-500/20 to-emerald-500/20 rounded-xl p-4 border border-green-400/30">
@@ -348,10 +455,6 @@ const PuzzleSolverUI = () => {
                       <div className="flex justify-between">
                         <span>Search Depth:</span>
                         <span className="font-bold">{results.searchDepth}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Max Depth:</span>
-                        <span className="font-bold">{results.maxDepth}</span>
                       </div>
                     </div>
                   </div>
