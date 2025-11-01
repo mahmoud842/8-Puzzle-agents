@@ -87,7 +87,8 @@ class State:
     def calculateH(self, method):
         current = self.getState()
         total = 0
-        for num in range(1, 9):
+        for num in range(9):
+            if (current[num] == 0): continue
             ci = num
             gi = current[num]
             cx, cy = ci % 3, ci // 3
