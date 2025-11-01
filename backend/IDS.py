@@ -16,7 +16,12 @@ def iddfs(initialState : State,maxDepth:int = 31):
             
             return result
         depth += 1
-
+    return {{
+                'goal': None,
+                'cost': None,
+                'nodesExpanded': None,
+                'searchDepth': None
+            }}
 def dis(state : State, depth:int,path):
     global nodesExpanded
     if state.isGoal() :
